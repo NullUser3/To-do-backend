@@ -65,52 +65,34 @@ public class UserService {
     }
 
 
-    // Authenticate login, generate tokens, and return response
-    public ResponseEntity<?> verify(LoginRequest loginRequest, HttpServletResponse response) {
-        try {
-            // Authenticate user
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.getUsernameOrEmail(),
-                            loginRequest.getPassword()
-                    )
-            );
+public ResponseEntity<?> verify(LoginRequest loginRequest, HttpServletResponse response) {
 
-            // If successful, get authenticated user details
-            UserAdapter userDetails = (UserAdapter) authentication.getPrincipal();
-
-            // Generate access token
-            String token = jwtService.generateToken(
-                    userDetails.getUsername(),
-                    Map.of("userId", userDetails.getUser().getId())  // You'll need to add getUser() method in UserAdapter
-            );
-
-            // Generate refresh token
-            String refreshToken = jwtService.generateRefreshToken(userDetails.getUsername());
-
-            // Send refresh token as HttpOnly cookie
-            ResponseCookie refreshCookie = ResponseCookie.from("refreshToken", refreshToken)
-                    .httpOnly(true)
-                    .secure(true) // set false locally if no HTTPS
-                    .path("/")
-                    .maxAge(7 * 24 * 60 * 60) // 7 days
-                    .sameSite("Strict")
-                    .build();
-            response.addHeader(HttpHeaders.SET_COOKIE, refreshCookie.toString());
-
-            // Return access token and user info in response body
-            return ResponseEntity.ok(Map.of(
-                    "token", token,
-                    "username", userDetails.getUsername()
+    Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsernameOrEmail(),
+                    loginRequest.getPassword()
             )
-            );
+    );
 
-        } catch (UsernameNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password.");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Authentication failed");
-        }
-    }
+    UserAdapter userDetails = (UserAdapter) authentication.getPrincipal();
+
+    // 🔑 Generate ONLY access token
+    String accessToken = jwtService.generateToken(
+            userDetails.getUsername(),
+            Map.of("userId", userDetails.getUser().getId())
+    );
+
+    // 🍪 Single HttpOnly cookie
+    ResponseCookie cookie = ResponseCookie.from("accessToken", accessToken)
+            .httpOnly(true)
+            .secure(true)      // set false in local dev if no HTTPS
+            .path("/")
+            .maxAge(15 * 60)   // 15 minutes (or 1 hour if you want)
+            .sameSite("Strict")
+            .build();
+
+    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+    return ResponseEntity.ok("Login successful");
+}
 }
