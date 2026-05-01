@@ -1,7 +1,6 @@
 package com.example.collaborative.to_do_list.config;
 
 import java.util.List;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -20,81 +19,80 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import static org.springframework.security.config.Customizer.withDefaults;
 import com.example.collaborative.to_do_list.service.MyUserDetailsService;
+
 // Declares this class as a configuration class for Spring
 @Configuration
 // Enables Spring Security's web security features
 @EnableWebSecurity
 public class SecurityConfig {
-    
-    // Injects the UserDetailsService bean to load user-specific data
-    private final MyUserDetailsService myUserDetailsService;
 
-    public SecurityConfig(MyUserDetailsService myUserDetailsService) {
-        this.myUserDetailsService = myUserDetailsService;
-    }
+	// Injects the UserDetailsService bean to load user-specific data
+	private final MyUserDetailsService myUserDetailsService;
 
-    // Defines the security filter chain that applies to all HTTP requests
-@Bean
-public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
-    return http
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .cors(withDefaults())
-            .authorizeHttpRequests(auth -> auth
+	public SecurityConfig(MyUserDetailsService myUserDetailsService) {
+		this.myUserDetailsService = myUserDetailsService;
+	}
 
-                    // ✅ allow CORS preflight globally
-                    .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+	// Defines the security filter chain that applies to all HTTP requests
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter,
+			CustomAuthEntryPoint customAuthEntryPoint) throws Exception {
+		return http.csrf(csrf -> csrf.disable())
+			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.cors(withDefaults())
+			.authorizeHttpRequests(auth -> auth
 
-                    // ✅ public endpoints
-                    .requestMatchers(
-                            "/api/login",
-                            "/api/createUser",
-                            "/api/logout",
-                            "/error",
-                            "/swagger-ui/**",
-                            "/v3/api-docs/**"
-                    ).permitAll()
+				// ✅ allow CORS preflight globally
+				.requestMatchers(HttpMethod.OPTIONS, "/**")
+				.permitAll()
 
-                    // 🔐 everything else secured
-                    .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
-}
-@Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:3000")); // your React dev server
-    configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE","PATCH","OPTIONS"));
-    configuration.setAllowedHeaders(List.of("*"));
-    configuration.setAllowCredentials(true);
+				// ✅ public endpoints
+				.requestMatchers("/api/login", "/api/createUser", "/api/logout", "/error", "/swagger-ui/**",
+						"/v3/api-docs/**")
+				.permitAll()
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration);
-    return source;
-}
+				// 🔐 everything else secured
+				.anyRequest()
+				.authenticated())
+			.exceptionHandling(ex -> ex.authenticationEntryPoint(customAuthEntryPoint))
+			.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+			.build();
+	}
 
-    // Creates an AuthenticationProvider bean for authenticating users
-    @Bean
-    public AuthenticationProvider authenticationProvider(){
-        // Creates a DAO (Data Access Object) authentication provider
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        
-        // Sets the password encoder to BCrypt with strength 12
-        provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
-        
-        // Sets the UserDetailsService for loading user details
-        provider.setUserDetailsService(myUserDetailsService);
-        
-        return provider;
-    }
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(List.of("http://localhost:5173")); // your React
+																			// dev server
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+		configuration.setAllowedHeaders(List.of("*"));
+		configuration.setAllowCredentials(true);
 
-    // Creates an AuthenticationManager bean
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        // Gets the AuthenticationManager from the configuration
-        return config.getAuthenticationManager();
-    }
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
+	}
+
+	// Creates an AuthenticationProvider bean for authenticating users
+	@Bean
+	public AuthenticationProvider authenticationProvider() {
+		// Creates a DAO (Data Access Object) authentication provider
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+
+		// Sets the password encoder to BCrypt with strength 12
+		provider.setPasswordEncoder(new BCryptPasswordEncoder(12));
+
+		// Sets the UserDetailsService for loading user details
+		provider.setUserDetailsService(myUserDetailsService);
+
+		return provider;
+	}
+
+	// Creates an AuthenticationManager bean
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+		// Gets the AuthenticationManager from the configuration
+		return config.getAuthenticationManager();
+	}
+
 }

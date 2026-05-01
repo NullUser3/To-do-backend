@@ -4,7 +4,6 @@ import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,84 +31,74 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder
 public class TaskList {
-    
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
-    private UUID id;
 
-    @Column(nullable = false,length = 100)
-    private String name;
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
+	@Column(columnDefinition = "uuid", updatable = false, nullable = false)
+	private UUID id;
 
-    @Column(nullable = true,length = 7)
-    @Builder.Default
-    private String color="#E3E3E3";
+	@Column(nullable = false, length = 100)
+	private String name;
 
-    @OneToMany(mappedBy = "list",
-    fetch = FetchType.LAZY,
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-    @Builder.Default
-    private Set<Task> tasks = new HashSet<>();
+	@Column(nullable = true, length = 7)
+	@Builder.Default
+	private String color = "#E3E3E3";
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "created_by",nullable = false)
-    private User createdBy;
+	@OneToMany(mappedBy = "list", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+	@Builder.Default
+	private Set<Task> tasks = new HashSet<>();
 
-    @Column(name = "created_at", updatable = false, nullable = false)
-     private OffsetDateTime createdAt;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "created_by", nullable = false)
+	private User createdBy;
 
-   @Column(name = "updated_at", nullable = false)
-    private OffsetDateTime updatedAt;
+	@Column(name = "created_at", updatable = false, nullable = false)
+	private OffsetDateTime createdAt;
 
-    @Column(name = "deleted_at")
-    private OffsetDateTime deletedAt;
+	@Column(name = "updated_at", nullable = false)
+	private OffsetDateTime updatedAt;
 
-    @Column(nullable = false)
-    private int position;
+	@Column(name = "deleted_at")
+	private OffsetDateTime deletedAt;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = OffsetDateTime.now();
-        this.updatedAt = OffsetDateTime.now();
-    }
+	@Column(nullable = false)
+	private int position;
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = OffsetDateTime.now();
-    }
-    
-    public boolean isDeleted() {
-        return this.deletedAt != null;
-    }
+	@PrePersist
+	protected void onCreate() {
+		this.createdAt = OffsetDateTime.now();
+		this.updatedAt = OffsetDateTime.now();
+	}
 
-    @Override
-    public String toString() {
-        return "TaskList{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", color='" + color + '\'' +
-                ", createdBy=" + (createdBy != null ? createdBy.getId() : null) +
-                ", createdAt=" + createdAt +
-                ", isDeleted=" + isDeleted() +
-                '}';
-    }
+	@PreUpdate
+	protected void onUpdate() {
+		this.updatedAt = OffsetDateTime.now();
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TaskList)) return false;
-        TaskList taskList = (TaskList) o;
-        return id != null && id.equals(taskList.id);
-    }
+	public boolean isDeleted() {
+		return this.deletedAt != null;
+	}
 
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+	@Override
+	public String toString() {
+		return "TaskList{" + "id=" + id + ", name='" + name + '\'' + ", color='" + color + '\'' + ", createdBy="
+				+ (createdBy != null ? createdBy.getId() : null) + ", createdAt=" + createdAt + ", isDeleted="
+				+ isDeleted() + '}';
+	}
 
-    
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+		if (!(o instanceof TaskList))
+			return false;
+		TaskList taskList = (TaskList) o;
+		return id != null && id.equals(taskList.id);
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
+
 }
-
-

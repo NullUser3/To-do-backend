@@ -2,7 +2,6 @@ package com.example.collaborative.to_do_list.config;
 
 import com.example.collaborative.to_do_list.service.JwtService;
 import com.example.collaborative.to_do_list.service.MyUserDetailsService;
-
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,74 +9,71 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 
 @Component // Marks this class as a Spring-managed bean
 @RequiredArgsConstructor // Generates a constructor with required (final) fields
-public class JwtAuthenticationFilter extends OncePerRequestFilter { // Filter that runs once per request
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    // Injecting JwtService to generate/validate JWT tokens
-    private final JwtService jwtService;
+// Filter that runs
+																	// once per request
 
-    // Injecting custom UserDetailsService to load user data from DB
-    private final MyUserDetailsService userDetailsService;
+	// Injecting JwtService to generate/validate JWT tokens
+	private final JwtService jwtService;
 
-    @Override
-protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-        throws ServletException, IOException {
+	// Injecting custom UserDetailsService to load user data from DB
+	private final MyUserDetailsService userDetailsService;
 
-    String jwt = null;
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
 
-    // 🍪 extract token from HttpOnly cookie
-    if (request.getCookies() != null) {
-        for (Cookie cookie : request.getCookies()) {
-            if ("accessToken".equals(cookie.getName())) {
-                jwt = cookie.getValue();
-                break;
-            }
-        }
-    }
+		String jwt = null;
 
-    // if no token → continue request
-    if (jwt == null) {
-        filterChain.doFilter(request, response);
-        return;
-    }
+		// 🍪 extract token from HttpOnly cookie
+		if (request.getCookies() != null) {
+			for (Cookie cookie : request.getCookies()) {
+				if ("accessToken".equals(cookie.getName())) {
+					jwt = cookie.getValue();
+					break;
+				}
+			}
+		}
 
-    String username;
+		// if no token → continue request
+		if (jwt == null) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 
-    try {
-        username = jwtService.extractUsername(jwt);
-    } catch (JwtException e) {
-        filterChain.doFilter(request, response);
-        return;
-    }
+		String username;
 
-    if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+		try {
+			username = jwtService.extractUsername(jwt);
+		}
+		catch (JwtException e) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 
-        var userDetails = userDetailsService.loadUserByUsername(username);
+		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-        if (jwtService.isTokenValid(jwt)) {
+			var userDetails = userDetailsService.loadUserByUsername(username);
 
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(
-                            userDetails,
-                            null,
-                            userDetails.getAuthorities()
-                    );
+			if (jwtService.isTokenValid(jwt)) {
 
-            authToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
-            );
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+						null, userDetails.getAuthorities());
 
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
-    }
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-    filterChain.doFilter(request, response);
+				SecurityContextHolder.getContext().setAuthentication(authToken);
+			}
+		}
+
+		filterChain.doFilter(request, response);
+	}
+
 }
-}
-

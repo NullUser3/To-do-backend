@@ -1,0 +1,36 @@
+# Maven / Gradle build output
+target/
+build/
+out/
+
+# Logs
+*.log
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docker files (optional to exclude)
+Dockerfile
+docker-compose.yml
+
+# Environment files (IMPORTANT: avoid leaking secrets into image)
+.env
+.env.*
+*.properties
+
+# Node (if you ever add frontend in same repo)
+node_modules/
+
+# Temporary files
+*.tmp
+*.swp
