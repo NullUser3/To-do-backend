@@ -2,7 +2,7 @@
 
 A RESTful backend API for the Todo App, built with **Java / Spring Boot**, containerized with **Docker**, and powered by **Supabase (PostgreSQL)** as the cloud database.
 
-> 🖥️ **Frontend Repository:** [todo-app-frontend](https://github.com/your-username/todo-app-frontend)
+> 🖥️ **Frontend Repository:** [todo-app-frontend](https://github.com/NullUser3/To-do-frontend)
 
 ---
 
