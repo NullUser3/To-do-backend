@@ -44,7 +44,7 @@ Make sure you have [Docker](https://www.docker.com/) installed, then:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/todo-app-backend.git
+git clone https://github.com/NullUser3/To-do-backend.git
 cd todo-app-backend
 
 # 2. Set up environment variables
@@ -87,7 +87,7 @@ The `Dockerfile` uses a multi-stage build:
 ## 🚀 Running Locally (Without Docker)
 
 ```bash
-# Requires Java 17+ and Maven installed
+# Requires Java 21+ and Maven installed
 
 mvn clean install
 mvn spring-boot:run
